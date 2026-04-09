@@ -1,0 +1,15 @@
+node_modules
+frontend/node_modules
+frontend/build
+.git
+.emergent
+memory
+test_reports
+tests
+*.md
+backend_test.py
+design_guidelines.json
+test_result.md
+__pycache__
+*.pyc
+.env
