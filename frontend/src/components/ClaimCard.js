@@ -45,7 +45,7 @@ export default function ClaimCard({ claim, index }) {
       onClick={() => setExpanded(!expanded)}
     >
       {/* Header */}
-      <div className="p-4 flex items-center gap-4" data-testid={`claim-card-${index}-expand-btn`}>
+      <div className="p-4 flex items-center gap-4" data-testid={`claim-expand-${index}`}>
         <span
           className="font-mono text-sm font-bold flex-shrink-0 w-6 text-center"
           style={{ color }}
@@ -85,7 +85,7 @@ export default function ClaimCard({ claim, index }) {
       {expanded && (
         <div
           className="border-t border-tl-border p-4 animate-fade-in-up"
-          data-testid={`claim-card-${index}-details`}
+          data-testid={`claim-details-${index}`}
         >
           <div className="flex items-center gap-2 mb-4">
             <div className="status-dot" style={{ backgroundColor: color }} />
