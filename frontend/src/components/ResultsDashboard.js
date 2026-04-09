@@ -1,9 +1,10 @@
 import { useState } from "react";
 import TrustScoreRing, { COLORS } from "@/components/TrustScoreRing";
 import ClaimCard from "@/components/ClaimCard";
-import { RotateCcw, Download } from "lucide-react";
+import { RotateCcw, Download, GitCompareArrows } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import CompareSelector from "@/components/CompareSelector";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -35,6 +36,7 @@ const STAT_ITEMS = [
 export default function ResultsDashboard({ result, onReset }) {
   const [filter, setFilter] = useState("all");
   const [exporting, setExporting] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
 
   const filteredClaims = filter === "all"
     ? result.claims
@@ -82,6 +84,14 @@ export default function ResultsDashboard({ result, onReset }) {
           )}
         </div>
         <div className="flex items-center gap-3">
+          <button
+            data-testid="compare-report-btn"
+            onClick={() => setCompareOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-tl-border text-[#94a3b8] hover:text-[#f8fafc] hover:border-[#94a3b8] font-mono text-sm transition-colors"
+          >
+            <GitCompareArrows size={14} strokeWidth={1.5} />
+            Compare
+          </button>
           <button
             data-testid="export-pdf-btn"
             onClick={handleExportPDF}
@@ -201,6 +211,12 @@ export default function ResultsDashboard({ result, onReset }) {
       />
 
       <div className="py-16" />
+
+      <CompareSelector
+        open={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        currentResult={result}
+      />
     </div>
   );
 }

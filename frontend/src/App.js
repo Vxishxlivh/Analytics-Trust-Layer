@@ -8,6 +8,7 @@ import AnalysisInput from "@/components/AnalysisInput";
 import ValidationLoader from "@/components/ValidationLoader";
 import ResultsDashboard from "@/components/ResultsDashboard";
 import HistoryPage from "@/components/HistoryPage";
+import ComparisonView from "@/components/ComparisonView";
 import { getDemoResult } from "@/data/demoData";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -85,6 +86,10 @@ function AppContent() {
           <Route
             path="/history"
             element={<HistoryPage onViewResult={handleViewHistoryResult} />}
+          />
+          <Route
+            path="/compare"
+            element={<ComparisonView />}
           />
           <Route
             path="*"

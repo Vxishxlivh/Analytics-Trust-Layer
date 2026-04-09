@@ -307,6 +307,66 @@ Feb,148000,735"""
             print("   ⚠️  No validations available to test deletion")
             return False, {}
 
+    def test_comparison_data_availability(self):
+        """Test that we have enough validations for comparison feature"""
+        success, validations = self.test_get_validations()
+        
+        if success and isinstance(validations, list):
+            if len(validations) >= 2:
+                print(f"   ✅ Found {len(validations)} validations - sufficient for comparison")
+                # Check that validations have required fields for comparison
+                for i, validation in enumerate(validations[:2]):
+                    required_fields = ['id', 'trust_score', 'decision_risk', 'timestamp']
+                    missing_fields = [field for field in required_fields if field not in validation]
+                    if missing_fields:
+                        print(f"   ❌ Validation {i+1} missing fields: {missing_fields}")
+                        return False, {}
+                    else:
+                        print(f"   ✅ Validation {i+1} has all required fields for comparison")
+                return True, validations
+            else:
+                print(f"   ⚠️  Only {len(validations)} validations found - need at least 2 for comparison")
+                return False, validations
+        return False, {}
+
+    def test_validation_full_data_for_comparison(self):
+        """Test that individual validations have full data needed for comparison"""
+        list_success, validations = self.test_get_validations()
+        
+        if list_success and isinstance(validations, list) and len(validations) >= 2:
+            # Test first two validations for full data
+            for i, validation in enumerate(validations[:2]):
+                validation_id = validation.get('id')
+                if validation_id:
+                    success, full_validation = self.run_test(
+                        f"Get Full Validation Data for Comparison {i+1}: {validation_id}",
+                        "GET",
+                        f"validations/{validation_id}",
+                        200
+                    )
+                    
+                    if success and isinstance(full_validation, dict):
+                        # Check for comparison-required fields
+                        comparison_fields = ['claims', 'summary', 'missing_context', 'hidden_assumptions', 'alternative_explanations']
+                        missing_fields = [field for field in comparison_fields if field not in full_validation]
+                        if missing_fields:
+                            print(f"   ❌ Validation {i+1} missing comparison fields: {missing_fields}")
+                            return False, {}
+                        else:
+                            print(f"   ✅ Validation {i+1} has all comparison data fields")
+                            print(f"   ✅ Claims count: {len(full_validation.get('claims', []))}")
+                            print(f"   ✅ Summary stats: {full_validation.get('summary', {})}")
+                    else:
+                        print(f"   ❌ Failed to get full data for validation {i+1}")
+                        return False, {}
+                else:
+                    print(f"   ❌ No ID found for validation {i+1}")
+                    return False, {}
+            return True, validations
+        else:
+            print("   ⚠️  Insufficient validations for comparison testing")
+            return False, {}
+
 def main():
     print("🚀 Starting TrustLayer API Tests")
     print("=" * 50)
@@ -346,7 +406,13 @@ def main():
     # Test 11: Get Validation by ID
     tester.test_get_validation_by_id()
     
-    # Test 12: Delete Validation (commented out to preserve test data)
+    # Test 12: Comparison Data Availability
+    tester.test_comparison_data_availability()
+    
+    # Test 13: Full Validation Data for Comparison
+    tester.test_validation_full_data_for_comparison()
+    
+    # Test 14: Delete Validation (commented out to preserve test data)
     # tester.test_delete_validation()
     
     # Print final results

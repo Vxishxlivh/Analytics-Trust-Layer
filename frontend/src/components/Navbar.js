@@ -5,6 +5,7 @@ export default function Navbar({ onReset, currentStep }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isHistory = location.pathname === "/history";
+  const isCompare = location.pathname === "/compare";
 
   return (
     <nav
@@ -20,7 +21,7 @@ export default function Navbar({ onReset, currentStep }) {
           [TRUST_LAYER]
         </button>
         <div className="flex items-center gap-6">
-          {!isHistory && (
+          {!isHistory && !isCompare && (
             <>
               <StepIndicator label="01 DATA" active={currentStep === "data"} />
               <StepIndicator label="02 ANALYSIS" active={currentStep === "analysis"} />

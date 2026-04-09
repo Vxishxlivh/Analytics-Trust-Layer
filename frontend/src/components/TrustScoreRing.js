@@ -15,13 +15,14 @@ function getScoreColor(score) {
   return "#991b1b";
 }
 
-export default function TrustScoreRing({ score }) {
+export default function TrustScoreRing({ score, size: sizeProp }) {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [mounted, setMounted] = useState(false);
   const ref = useRef(null);
 
-  const size = 240;
-  const strokeWidth = 6;
+  const size = sizeProp || 240;
+  const strokeWidth = size > 180 ? 6 : 4;
+  const fontSize = size > 180 ? "text-6xl" : "text-4xl";
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (animatedScore / 100) * circumference;
@@ -80,7 +81,7 @@ export default function TrustScoreRing({ score }) {
       </svg>
       <div className="absolute flex flex-col items-center justify-center" style={{ width: size, height: size }}>
         <span
-          className="font-mono text-6xl font-bold tracking-tight"
+          className={`font-mono ${fontSize} font-bold tracking-tight`}
           style={{ color }}
         >
           {animatedScore}
