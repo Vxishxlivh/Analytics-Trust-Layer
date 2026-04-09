@@ -29,6 +29,8 @@ class TrustLayerAPITester:
                 else:
                     headers['Content-Type'] = 'application/json'
                     response = requests.post(url, json=data, headers=headers)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers)
 
             success = response.status_code == expected_status
             if success:
@@ -187,6 +189,124 @@ Feb,148000,735"""
             return True, response
         return False, {}
 
+    def test_google_sheets_invalid_url(self):
+        """Test Google Sheets with invalid URL"""
+        success, response = self.run_test(
+            "Google Sheets - Invalid URL",
+            "POST",
+            "parse-google-sheet",
+            400,  # Expecting error
+            data={"url": "https://invalid-url.com"}
+        )
+        return success, response
+
+    def test_google_sheets_empty_url(self):
+        """Test Google Sheets with empty URL"""
+        success, response = self.run_test(
+            "Google Sheets - Empty URL",
+            "POST",
+            "parse-google-sheet",
+            400,  # Expecting error
+            data={"url": ""}
+        )
+        return success, response
+
+    def test_pdf_export(self):
+        """Test PDF export endpoint"""
+        # Sample validation data for PDF export
+        sample_data = {
+            "trust_score": 75,
+            "decision_risk": "MEDIUM",
+            "summary": {
+                "verified": 5,
+                "wrong": 2,
+                "partial": 1,
+                "logic_gap": 0,
+                "unverifiable": 1
+            },
+            "claims": [
+                {
+                    "id": "test-claim-1",
+                    "claim_text": "Revenue increased by 15% in Q1",
+                    "claim_type": "numeric_fact",
+                    "risk_level": "NORMAL",
+                    "status": "verified",
+                    "claimed_value": "15%",
+                    "actual_value": "15.2%",
+                    "explanation": "Claim verified against data"
+                }
+            ],
+            "missing_context": ["Market conditions not considered"],
+            "hidden_assumptions": ["Assumes linear growth"],
+            "alternative_explanations": ["Seasonal factors may apply"],
+            "timestamp": "2024-01-01T12:00:00Z"
+        }
+        
+        success, response = self.run_test(
+            "PDF Export",
+            "POST",
+            "export-pdf",
+            200,
+            data=sample_data
+        )
+        
+        if success:
+            print(f"   ✅ PDF export successful")
+            return True, response
+        return False, {}
+
+    def test_get_validation_by_id(self):
+        """Test get specific validation by ID"""
+        # First get list of validations to find an ID
+        list_success, validations = self.test_get_validations()
+        
+        if list_success and isinstance(validations, list) and len(validations) > 0:
+            validation_id = validations[0].get('id')
+            if validation_id:
+                success, response = self.run_test(
+                    f"Get Validation by ID: {validation_id}",
+                    "GET",
+                    f"validations/{validation_id}",
+                    200
+                )
+                
+                if success and isinstance(response, dict):
+                    print(f"   ✅ Retrieved validation with ID: {validation_id}")
+                    return True, response
+                return False, {}
+            else:
+                print("   ⚠️  No validation ID found in list")
+                return False, {}
+        else:
+            print("   ⚠️  No validations available to test individual retrieval")
+            return False, {}
+
+    def test_delete_validation(self):
+        """Test delete validation endpoint"""
+        # First get list of validations to find an ID
+        list_success, validations = self.test_get_validations()
+        
+        if list_success and isinstance(validations, list) and len(validations) > 0:
+            validation_id = validations[0].get('id')
+            if validation_id:
+                success, response = self.run_test(
+                    f"Delete Validation: {validation_id}",
+                    "DELETE",
+                    f"validations/{validation_id}",
+                    200
+                )
+                
+                if success:
+                    print(f"   ✅ Deleted validation with ID: {validation_id}")
+                    return True, response
+                return False, {}
+            else:
+                print("   ⚠️  No validation ID found in list")
+                return False, {}
+        else:
+            print("   ⚠️  No validations available to test deletion")
+            return False, {}
+
 def main():
     print("🚀 Starting TrustLayer API Tests")
     print("=" * 50)
@@ -213,6 +333,21 @@ def main():
     
     # Test 7: Get Validations
     tester.test_get_validations()
+    
+    # Test 8: Google Sheets - Invalid URL
+    tester.test_google_sheets_invalid_url()
+    
+    # Test 9: Google Sheets - Empty URL  
+    tester.test_google_sheets_empty_url()
+    
+    # Test 10: PDF Export
+    tester.test_pdf_export()
+    
+    # Test 11: Get Validation by ID
+    tester.test_get_validation_by_id()
+    
+    # Test 12: Delete Validation (commented out to preserve test data)
+    # tester.test_delete_validation()
     
     # Print final results
     print("\n" + "=" * 50)

@@ -1,11 +1,13 @@
 import { useState, useCallback } from "react";
 import "@/App.css";
 import axios from "axios";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import DataConnection from "@/components/DataConnection";
 import AnalysisInput from "@/components/AnalysisInput";
 import ValidationLoader from "@/components/ValidationLoader";
 import ResultsDashboard from "@/components/ResultsDashboard";
+import HistoryPage from "@/components/HistoryPage";
 import { getDemoResult } from "@/data/demoData";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -13,7 +15,8 @@ import { toast } from "sonner";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
   const [step, setStep] = useState("data");
   const [csvData, setCsvData] = useState(null);
   const [analysisText, setAnalysisText] = useState("");
@@ -64,37 +67,58 @@ function App() {
     setResult(null);
     setIsDemo(false);
     setError(null);
-  }, []);
+    navigate("/");
+  }, [navigate]);
+
+  const handleViewHistoryResult = useCallback((data) => {
+    setResult(data);
+    setIsDemo(false);
+    setStep("results");
+    navigate("/");
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-tl-bg text-[#f8fafc]">
       <Navbar onReset={handleReset} currentStep={step} />
       <main className="max-w-7xl mx-auto px-6 md:px-12">
-        {step === "data" && (
-          <DataConnection onDataReady={handleDataReady} onDemo={handleDemo} />
-        )}
-        {step === "analysis" && (
-          <AnalysisInput
-            analysisText={analysisText}
-            setAnalysisText={setAnalysisText}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            onValidate={handleValidate}
-            onDemo={handleDemo}
-            onBack={() => setStep("data")}
-            error={error}
+        <Routes>
+          <Route
+            path="/history"
+            element={<HistoryPage onViewResult={handleViewHistoryResult} />}
           />
-        )}
-        {step === "loading" && (
-          <ValidationLoader
-            onComplete={handleLoadingComplete}
-            isDemo={isDemo}
-            hasResult={!!result}
+          <Route
+            path="*"
+            element={
+              <>
+                {step === "data" && (
+                  <DataConnection onDataReady={handleDataReady} onDemo={handleDemo} />
+                )}
+                {step === "analysis" && (
+                  <AnalysisInput
+                    analysisText={analysisText}
+                    setAnalysisText={setAnalysisText}
+                    apiKey={apiKey}
+                    setApiKey={setApiKey}
+                    onValidate={handleValidate}
+                    onDemo={handleDemo}
+                    onBack={() => setStep("data")}
+                    error={error}
+                  />
+                )}
+                {step === "loading" && (
+                  <ValidationLoader
+                    onComplete={handleLoadingComplete}
+                    isDemo={isDemo}
+                    hasResult={!!result}
+                  />
+                )}
+                {step === "results" && result && (
+                  <ResultsDashboard result={result} onReset={handleReset} />
+                )}
+              </>
+            }
           />
-        )}
-        {step === "results" && result && (
-          <ResultsDashboard result={result} onReset={handleReset} />
-        )}
+        </Routes>
       </main>
       <Toaster
         position="top-right"
@@ -108,6 +132,14 @@ function App() {
         }}
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 

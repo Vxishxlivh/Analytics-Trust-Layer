@@ -1,7 +1,12 @@
 import { useState } from "react";
 import TrustScoreRing, { COLORS } from "@/components/TrustScoreRing";
 import ClaimCard from "@/components/ClaimCard";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Download } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const RISK_COLORS = {
   LOW: "#10b981",
@@ -29,10 +34,33 @@ const STAT_ITEMS = [
 
 export default function ResultsDashboard({ result, onReset }) {
   const [filter, setFilter] = useState("all");
+  const [exporting, setExporting] = useState(false);
 
   const filteredClaims = filter === "all"
     ? result.claims
     : result.claims.filter((c) => c.status === filter);
+
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      const response = await axios.post(`${API}/export-pdf`, result, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `trustlayer-report-${result.trust_score}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("PDF exported successfully");
+    } catch (e) {
+      toast.error("Failed to export PDF");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="py-16 animate-fade-in-up" data-testid="results-dashboard">
@@ -48,14 +76,25 @@ export default function ResultsDashboard({ result, onReset }) {
             </span>
           )}
         </div>
-        <button
-          data-testid="start-new-btn"
-          onClick={onReset}
-          className="flex items-center gap-2 px-4 py-2 border border-tl-border text-[#94a3b8] hover:text-[#f8fafc] hover:border-[#94a3b8] font-mono text-sm transition-colors"
-        >
-          <RotateCcw size={14} strokeWidth={1.5} />
-          New Validation
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            data-testid="export-pdf-btn"
+            onClick={handleExportPDF}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-2 border border-tl-border text-[#94a3b8] hover:text-[#f8fafc] hover:border-[#94a3b8] font-mono text-sm transition-colors disabled:opacity-40"
+          >
+            <Download size={14} strokeWidth={1.5} />
+            {exporting ? "Exporting..." : "Export PDF"}
+          </button>
+          <button
+            data-testid="start-new-btn"
+            onClick={onReset}
+            className="flex items-center gap-2 px-4 py-2 border border-tl-border text-[#94a3b8] hover:text-[#f8fafc] hover:border-[#94a3b8] font-mono text-sm transition-colors"
+          >
+            <RotateCcw size={14} strokeWidth={1.5} />
+            New Validation
+          </button>
+        </div>
       </div>
 
       {/* Score Section */}

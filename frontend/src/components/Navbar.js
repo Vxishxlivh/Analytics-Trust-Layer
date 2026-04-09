@@ -1,4 +1,11 @@
+import { useNavigate, useLocation } from "react-router-dom";
+import { Clock } from "lucide-react";
+
 export default function Navbar({ onReset, currentStep }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHistory = location.pathname === "/history";
+
   return (
     <nav
       data-testid="navbar"
@@ -13,10 +20,25 @@ export default function Navbar({ onReset, currentStep }) {
           [TRUST_LAYER]
         </button>
         <div className="flex items-center gap-6">
-          <StepIndicator step="data" label="01 DATA" active={currentStep === "data"} />
-          <StepIndicator step="analysis" label="02 ANALYSIS" active={currentStep === "analysis"} />
-          <StepIndicator step="loading" label="03 VALIDATE" active={currentStep === "loading"} />
-          <StepIndicator step="results" label="04 RESULTS" active={currentStep === "results"} />
+          {!isHistory && (
+            <>
+              <StepIndicator label="01 DATA" active={currentStep === "data"} />
+              <StepIndicator label="02 ANALYSIS" active={currentStep === "analysis"} />
+              <StepIndicator label="03 VALIDATE" active={currentStep === "loading"} />
+              <StepIndicator label="04 RESULTS" active={currentStep === "results"} />
+              <div className="w-px h-4 bg-tl-border mx-1" />
+            </>
+          )}
+          <button
+            data-testid="nav-history-link"
+            onClick={() => navigate("/history")}
+            className={`flex items-center gap-1.5 font-mono text-[10px] tracking-[0.1em] uppercase transition-colors ${
+              isHistory ? "text-[#f8fafc]" : "text-[#64748b] hover:text-[#94a3b8]"
+            }`}
+          >
+            <Clock size={12} strokeWidth={1.5} />
+            History
+          </button>
         </div>
       </div>
     </nav>

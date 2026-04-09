@@ -14,6 +14,7 @@ export default function DataConnection({ onDataReady, onDemo }) {
   const [dragActive, setDragActive] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const [sheetsUrl, setSheetsUrl] = useState("");
+  const [sheetsLoading, setSheetsLoading] = useState(false);
   const [dbForm, setDbForm] = useState({ host: "", port: "", database: "", table: "" });
   const fileInputRef = useRef(null);
 
@@ -62,6 +63,20 @@ export default function DataConnection({ onDataReady, onDemo }) {
   }, []);
 
   const handleDragLeave = useCallback(() => setDragActive(false), []);
+
+  const handleGoogleSheet = useCallback(async () => {
+    if (!sheetsUrl.trim()) return;
+    setSheetsLoading(true);
+    setError(null);
+    try {
+      const res = await axios.post(`${API}/parse-google-sheet`, { url: sheetsUrl });
+      setCsvData(res.data);
+    } catch (e) {
+      setError(e.response?.data?.detail || "Failed to fetch Google Sheet");
+    } finally {
+      setSheetsLoading(false);
+    }
+  }, [sheetsUrl]);
 
   return (
     <div className="py-16 animate-fade-in-up">
@@ -153,9 +168,17 @@ export default function DataConnection({ onDataReady, onDemo }) {
               placeholder="https://docs.google.com/spreadsheets/d/..."
               className="w-full bg-tl-bg border border-tl-border p-3 text-sm text-[#f8fafc] placeholder:text-[#64748b] focus:ring-2 focus:ring-[#3b82f6] focus:outline-none font-mono"
             />
-            <p className="mt-4 text-[#64748b] text-sm">
-              Google Sheets integration coming soon. Use CSV export for now.
+            <p className="mt-3 text-[#64748b] text-xs font-mono">
+              Sheet must be set to "Anyone with the link can view"
             </p>
+            <button
+              data-testid="fetch-sheet-btn"
+              onClick={handleGoogleSheet}
+              disabled={!sheetsUrl.trim() || sheetsLoading}
+              className="mt-4 px-6 py-2.5 bg-[#f8fafc] text-[#0a0f1a] font-mono text-sm font-semibold tracking-wide uppercase hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {sheetsLoading ? "Fetching..." : "Fetch Data"}
+            </button>
           </div>
         </TabsContent>
 
