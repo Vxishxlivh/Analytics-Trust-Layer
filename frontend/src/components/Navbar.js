@@ -1,11 +1,20 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Clock } from "lucide-react";
+import { Clock, BarChart3, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar({ onReset, currentStep }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
   const isHistory = location.pathname === "/history";
   const isCompare = location.pathname === "/compare";
+  const isPatterns = location.pathname === "/patterns";
+  const isSpecialPage = isHistory || isCompare || isPatterns;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <nav
@@ -20,8 +29,8 @@ export default function Navbar({ onReset, currentStep }) {
         >
           [TRUST_LAYER]
         </button>
-        <div className="flex items-center gap-6">
-          {!isHistory && !isCompare && (
+        <div className="flex items-center gap-5">
+          {!isSpecialPage && (
             <>
               <StepIndicator label="01 DATA" active={currentStep === "data"} />
               <StepIndicator label="02 ANALYSIS" active={currentStep === "analysis"} />
@@ -30,6 +39,16 @@ export default function Navbar({ onReset, currentStep }) {
               <div className="w-px h-4 bg-tl-border mx-1" />
             </>
           )}
+          <button
+            data-testid="nav-patterns-link"
+            onClick={() => navigate("/patterns")}
+            className={`flex items-center gap-1.5 font-mono text-[10px] tracking-[0.1em] uppercase transition-colors ${
+              isPatterns ? "text-[#f8fafc]" : "text-[#64748b] hover:text-[#94a3b8]"
+            }`}
+          >
+            <BarChart3 size={12} strokeWidth={1.5} />
+            Patterns
+          </button>
           <button
             data-testid="nav-history-link"
             onClick={() => navigate("/history")}
@@ -40,6 +59,22 @@ export default function Navbar({ onReset, currentStep }) {
             <Clock size={12} strokeWidth={1.5} />
             History
           </button>
+          {user && (
+            <>
+              <div className="w-px h-4 bg-tl-border" />
+              <span className="font-mono text-[10px] text-[#64748b] tracking-[0.05em] max-w-[120px] truncate">
+                {user.name || user.email}
+              </span>
+              <button
+                data-testid="logout-btn"
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.1em] uppercase text-[#64748b] hover:text-tl-wrong transition-colors"
+              >
+                <LogOut size={12} strokeWidth={1.5} />
+                Logout
+              </button>
+            </>
+          )}
         </div>
       </div>
     </nav>
