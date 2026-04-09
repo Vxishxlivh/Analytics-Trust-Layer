@@ -42,10 +42,20 @@ async def upload_csv(file: UploadFile = File(...)):
     try:
         content = await file.read()
         filename = file.filename or "data.csv"
+        df = None
+
         if filename.endswith(('.xlsx', '.xls')):
-            df = pd.read_excel(io.BytesIO(content))
+            try:
+                df = pd.read_excel(io.BytesIO(content))
+            except Exception:
+                # Fallback: try parsing as CSV if Excel fails
+                df = pd.read_csv(io.BytesIO(content))
         else:
-            df = pd.read_csv(io.BytesIO(content))
+            try:
+                df = pd.read_csv(io.BytesIO(content))
+            except Exception:
+                # Fallback: try parsing as Excel if CSV fails
+                df = pd.read_excel(io.BytesIO(content))
 
         preview_rows = json.loads(df.head(5).to_json(orient='records', default_handler=str))
         all_rows = json.loads(df.to_json(orient='records', default_handler=str))
@@ -475,46 +485,43 @@ async def export_pdf(data: dict):
             if pdf.get_y() > 240:
                 pdf.add_page()
 
-            # Status + claim number
+            # Status + type line
             pdf.set_font("Helvetica", "B", 9)
             pdf.set_text_color(*color)
-            pdf.cell(25, 6, f"[{status_label}]", align="L")
-
+            status_text = f"[{status_label}]"
             risk = claim.get("risk_level", "NORMAL")
             if risk == "HIGH":
-                pdf.set_text_color(239, 68, 68)
-                pdf.cell(15, 6, "HIGH", align="L")
-            else:
-                pdf.cell(15, 6, "", align="L")
-
+                status_text += "  HIGH"
             claim_type = claim.get("claim_type", "").replace("_", " ").upper()
-            pdf.set_text_color(100, 116, 139)
-            pdf.set_font("Helvetica", "", 8)
-            pdf.cell(0, 6, claim_type, align="R", ln=True)
+            pdf.cell(0, 6, f"{status_text}    {claim_type}", ln=True)
 
             # Claim text
+            pdf.set_x(10)
             pdf.set_font("Helvetica", "", 10)
             pdf.set_text_color(248, 250, 252)
-            pdf.multi_cell(0, 5, _safe_text(claim.get("claim_text", "")))
+            pdf.multi_cell(190, 5, _safe_text(claim.get("claim_text", "")))
 
             # Claimed vs Actual
             cv = claim.get("claimed_value")
             av = claim.get("actual_value")
             if cv or av:
                 pdf.set_font("Helvetica", "", 9)
-                pdf.set_text_color(148, 163, 184)
                 if cv:
-                    pdf.cell(0, 5, f"  Claimed: {_safe_text(cv)}", ln=True)
+                    pdf.set_x(10)
+                    pdf.set_text_color(148, 163, 184)
+                    pdf.cell(0, 5, f"Claimed: {_safe_text(cv)}", ln=True)
                 if av:
+                    pdf.set_x(10)
                     pdf.set_text_color(*color)
-                    pdf.cell(0, 5, f"  Actual:  {_safe_text(av)}", ln=True)
+                    pdf.cell(0, 5, f"Actual:  {_safe_text(av)}", ln=True)
 
             # Explanation
             explanation = claim.get("explanation")
             if explanation:
+                pdf.set_x(10)
                 pdf.set_font("Helvetica", "I", 9)
                 pdf.set_text_color(100, 116, 139)
-                pdf.multi_cell(0, 4.5, f"  {_safe_text(explanation)}")
+                pdf.multi_cell(190, 4.5, _safe_text(explanation))
 
             pdf.ln(4)
 
@@ -543,11 +550,12 @@ async def export_pdf(data: dict):
             for j, item in enumerate(items):
                 if pdf.get_y() > 260:
                     pdf.add_page()
+                pdf.set_x(10)
                 pdf.set_font("Helvetica", "", 9)
                 pdf.set_text_color(100, 116, 139)
-                pdf.cell(10, 5, f"{j+1:02d}", align="R")
+                pdf.cell(12, 5, f"{j+1:02d}")
                 pdf.set_text_color(148, 163, 184)
-                pdf.multi_cell(0, 5, f"  {_safe_text(item)}")
+                pdf.multi_cell(178, 5, _safe_text(item))
                 pdf.ln(1)
 
         # Generate PDF bytes

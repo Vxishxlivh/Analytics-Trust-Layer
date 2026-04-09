@@ -45,7 +45,12 @@ export default function ResultsDashboard({ result, onReset }) {
     try {
       const response = await axios.post(`${API}/export-pdf`, result, {
         responseType: "blob",
+        validateStatus: (status) => status < 500,
       });
+      if (response.status !== 200) {
+        toast.error("PDF export failed");
+        return;
+      }
       const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
