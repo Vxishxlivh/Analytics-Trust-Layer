@@ -1,52 +1,112 @@
-import { useEffect } from "react";
+import { useState, useCallback } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import axios from "axios";
+import Navbar from "@/components/Navbar";
+import DataConnection from "@/components/DataConnection";
+import AnalysisInput from "@/components/AnalysisInput";
+import ValidationLoader from "@/components/ValidationLoader";
+import ResultsDashboard from "@/components/ResultsDashboard";
+import { getDemoResult } from "@/data/demoData";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+function App() {
+  const [step, setStep] = useState("data");
+  const [csvData, setCsvData] = useState(null);
+  const [analysisText, setAnalysisText] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [result, setResult] = useState(null);
+  const [isDemo, setIsDemo] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    helloWorldApi();
+  const handleDataReady = useCallback((data) => {
+    setCsvData(data);
+    setStep("analysis");
+  }, []);
+
+  const handleValidate = useCallback(async () => {
+    setError(null);
+    setStep("loading");
+    setIsDemo(false);
+    try {
+      const response = await axios.post(`${API}/validate`, {
+        csv_data: csvData.all_rows,
+        analysis_text: analysisText,
+        api_key: apiKey,
+      });
+      setResult(response.data);
+    } catch (e) {
+      const msg = e.response?.data?.detail || e.message || "Validation failed";
+      setError(msg);
+      toast.error(msg);
+      setStep("analysis");
+    }
+  }, [csvData, analysisText, apiKey]);
+
+  const handleDemo = useCallback(() => {
+    setIsDemo(true);
+    setResult(getDemoResult());
+    setStep("loading");
+  }, []);
+
+  const handleLoadingComplete = useCallback(() => {
+    setStep("results");
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setStep("data");
+    setCsvData(null);
+    setAnalysisText("");
+    setApiKey("");
+    setResult(null);
+    setIsDemo(false);
+    setError(null);
   }, []);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="min-h-screen bg-tl-bg text-[#f8fafc]">
+      <Navbar onReset={handleReset} currentStep={step} />
+      <main className="max-w-7xl mx-auto px-6 md:px-12">
+        {step === "data" && (
+          <DataConnection onDataReady={handleDataReady} onDemo={handleDemo} />
+        )}
+        {step === "analysis" && (
+          <AnalysisInput
+            analysisText={analysisText}
+            setAnalysisText={setAnalysisText}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
+            onValidate={handleValidate}
+            onDemo={handleDemo}
+            onBack={() => setStep("data")}
+            error={error}
+          />
+        )}
+        {step === "loading" && (
+          <ValidationLoader
+            onComplete={handleLoadingComplete}
+            isDemo={isDemo}
+            hasResult={!!result}
+          />
+        )}
+        {step === "results" && result && (
+          <ResultsDashboard result={result} onReset={handleReset} />
+        )}
+      </main>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: "#111827",
+            border: "1px solid #1e293b",
+            color: "#f8fafc",
+            borderRadius: "0px",
+          },
+        }}
+      />
     </div>
   );
 }
