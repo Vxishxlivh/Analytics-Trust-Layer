@@ -1,0 +1,133 @@
+{
+  "theme_archetype": {
+    "domain": "Finance & Data Validation",
+    "theme": "Dark",
+    "archetype": "Modified Archetype 4 (Swiss & High-Contrast) + Terminal Energy",
+    "vibe": "Bloomberg Terminal, Professional, Sharp, Data-Driven, Rigid"
+  },
+  "colors": {
+    "background": {
+      "default": "#0a0f1a",
+      "surface": "#111827",
+      "surface_hover": "#1f2937"
+    },
+    "border": {
+      "default": "#1e293b",
+      "focus": "#3b82f6"
+    },
+    "text": {
+      "primary": "#f8fafc",
+      "secondary": "#94a3b8",
+      "muted": "#64748b"
+    },
+    "status": {
+      "verified": "#10b981",
+      "wrong": "#ef4444",
+      "partial": "#f59e0b",
+      "logic_gap": "#8b5cf6",
+      "unverifiable": "#6b7280"
+    },
+    "risk": {
+      "low": "#10b981",
+      "medium": "#f59e0b",
+      "high": "#ef4444",
+      "critical": "#991b1b"
+    }
+  },
+  "typography": {
+    "primary_font": "Instrument Sans, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "rules": {
+      "headings": "Instrument Sans, font-bold, tracking-tight. NO INTER FOR HEADINGS.",
+      "body": "Instrument Sans, font-normal, leading-relaxed.",
+      "data_and_numbers": "JetBrains Mono. Use for all scores, metrics, code snippets, timestamps, and tabular data.",
+      "labels": "JetBrains Mono, uppercase, tracking-[0.1em], text-xs text-secondary."
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl font-bold tracking-tighter",
+      "h2": "text-2xl sm:text-3xl font-semibold tracking-tight",
+      "h3": "text-xl font-medium",
+      "body": "text-base",
+      "small": "text-sm",
+      "micro_label": "text-xs font-mono uppercase tracking-widest"
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Generous whitespace between sections. Dense and compact within data cards.",
+    "container": "max-w-7xl mx-auto px-6 md:px-12",
+    "edges": "Sharp corners ONLY. Use rounded-none globally, or strictly rounded-sm (2px) for inputs/buttons if absolutely necessary. NO bubbly rounded-lg or rounded-xl.",
+    "section_gap": "gap-24 or py-24",
+    "element_gap": "gap-6 or gap-8",
+    "borders": "Expose the skeleton. Heavy use of 1px solid borders (#1e293b) to separate sections rather than relying on background changes."
+  },
+  "surface_strategies": {
+    "cards": "Flat solid background (#111827). 1px border (#1e293b). NO gradients. NO soft shadows. If elevation is needed, use a hard offset shadow (e.g., 4px 4px 0px #000).",
+    "claim_cards": "Must use a thick colored left border (border-l-4) to indicate status. Background remains #111827.",
+    "inputs": "Flat, sharp edges, 1px border. Focus state must have a sharp 2px ring.",
+    "badges": "Minimalist. 1px border matching the status color, transparent background, text matching status color. No filled pills."
+  },
+  "components": {
+    "navigation": {
+      "style": "Minimalist top bar. Solid #0a0f1a bg, 1px bottom border #1e293b.",
+      "logo": "Text only. JetBrains Mono, uppercase, e.g., '[TRUST_LAYER]', font-bold tracking-widest."
+    },
+    "data_connection": {
+      "layout": "Grid or clean list. Tabs for switching input methods (CSV, Paste, GSheets, DB).",
+      "dropzone": "border-2 border-dashed border-[#1e293b] hover:border-[#94a3b8] transition-colors p-12 text-center. Font: Instrument Sans with monospace accents.",
+      "preview_table": "Dense, Bloomberg-style table. JetBrains Mono text. 1px borders on all cells. No rounded corners."
+    },
+    "analysis_input": {
+      "textarea": "Massive text area (min-h-[400px]). bg-[#111827], border-[#1e293b], focus:ring-1 focus:ring-white. Padding p-8. Font: Instrument Sans."
+    },
+    "validation_loader": {
+      "style": "Terminal-style output. JetBrains Mono. Staggered reveal of text. E.g., '> Decomposing into atomic claims... [DONE]'. Use a thin, sharp progress bar."
+    },
+    "results_dashboard": {
+      "score_ring": "Visual centerpiece. Massive SVG circle in the center. Stroke width thin but distinct. Color strictly maps to score (Green/Yellow/Red). Center text must be JetBrains Mono, e.g., '78%'.",
+      "stat_pills": "Grid layout (cols-2 md:cols-5). Each pill shows large mono number + tiny uppercase label + status color dot.",
+      "claim_list": "Vertical stack. gap-4.",
+      "claim_card": {
+        "closed_state": "bg-[#111827], border border-[#1e293b] border-l-4 (status color). p-4 flex items-center justify-between cursor-pointer hover:bg-[#1f2937].",
+        "expanded_state": "Reveals 'Claimed vs Actual', deep explanation, and standard Shadcn code block for pandas verification code.",
+        "typography": "Claim text in Instrument Sans text-lg. Metadata in JetBrains Mono text-xs."
+      },
+      "filter_tabs": "Sharp square buttons. Active state: bg-white text-black. Inactive state: text-secondary hover:text-white.",
+      "analysis_sections": "Sections for 'What's Missing', 'Hidden Assumptions' use clean typography, bullet points, maybe mono-font indices (01, 02, 03) on the left."
+    }
+  },
+  "motion_and_interaction": {
+    "philosophy": "Functional, not decorative. Snap transitions or very fast eases. No bouncy springs.",
+    "page_transitions": "Subtle fade + 10px upward shift (duration: 0.2s, ease-out).",
+    "score_ring": "Animate the SVG stroke-dashoffset from 0 to target score over 1.5 seconds. Use ease-out.",
+    "accordion_expand": "Fast height transition (0.2s) for claim cards."
+  },
+  "media": {
+    "images_allowed": false,
+    "icons_allowed": true,
+    "icon_strategy": "Use Lucide-react sparingly. Rely mostly on colored status dots (w-2 h-2 rounded-full) or pure text (+, -, x, !). If icons are used, stroke-width must be 1.5 for a sharp technical look."
+  },
+  "data_testid_requirements": {
+    "global": "All interactive elements must have data-testid. Format: kebab-case, role-based.",
+    "examples": [
+      "nav-home-link",
+      "data-connect-csv-tab",
+      "upload-dropzone",
+      "analysis-input-textarea",
+      "start-validation-button",
+      "trust-score-ring",
+      "filter-wrong-btn",
+      "claim-card-[id]-expand-btn"
+    ]
+  },
+  "instructions_to_main_agent": {
+    "1": "DO NOT install or use external image libraries. The UI is purely typography and data-driven.",
+    "2": "Setup Tailwind with the exact hex codes provided in 'colors'.",
+    "3": "Configure Tailwind config to remove border-radius globally if possible, or strictly use rounded-none in classes.",
+    "4": "Install 'lucide-react' for minimal technical icons.",
+    "5": "Install 'framer-motion' for the validation loader and score ring animations.",
+    "6": "Install fonts: Instrument Sans and JetBrains Mono (via Google Fonts in index.html/CSS).",
+    "7": "Use Shadcn components but STRIP AWAY all rounded corners (rounded-md/lg -> rounded-none).",
+    "8": "Implement the 'Demo Mode' exactly as requested: 16 claims (7 wrong, 4 verified, 3 partial, 2 logic gaps) bypassing the API requirement.",
+    "9": "Ensure the layout breathes. Use py-24 between major dashboard sections (e.g., between the Score Ring section and the Claims section)."
+  }
+}
