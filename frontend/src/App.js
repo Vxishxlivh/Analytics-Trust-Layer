@@ -1,7 +1,9 @@
 import { useState, useCallback } from "react";
 import "@/App.css";
+import "@/lib/api"; // initialize auth token from localStorage
 import axios from "axios";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import DataConnection from "@/components/DataConnection";
 import AnalysisInput from "@/components/AnalysisInput";
@@ -9,12 +11,34 @@ import ValidationLoader from "@/components/ValidationLoader";
 import ResultsDashboard from "@/components/ResultsDashboard";
 import HistoryPage from "@/components/HistoryPage";
 import ComparisonView from "@/components/ComparisonView";
+import PatternsPage from "@/components/PatternsPage";
+import LoginPage from "@/components/LoginPage";
+import SignupPage from "@/components/SignupPage";
 import { getDemoResult } from "@/data/demoData";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-tl-bg flex items-center justify-center">
+        <span className="font-mono text-sm text-[#94a3b8]">Loading...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
 
 function AppContent() {
   const navigate = useNavigate();
@@ -92,6 +116,10 @@ function AppContent() {
             element={<ComparisonView />}
           />
           <Route
+            path="/patterns"
+            element={<PatternsPage />}
+          />
+          <Route
             path="*"
             element={
               <>
@@ -143,7 +171,31 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route
+            path="/*"
+            element={
+              <RequireAuth>
+                <AppContent />
+              </RequireAuth>
+            }
+          />
+        </Routes>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#111827",
+              border: "1px solid #1e293b",
+              color: "#f8fafc",
+              borderRadius: "0px",
+            },
+          }}
+        />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
